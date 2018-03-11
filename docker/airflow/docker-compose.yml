@@ -1,0 +1,60 @@
+version: '3'
+services:
+  # First we setup our PostgresSQL container. It will use a standard image
+  # created by the Postgres team. If you don't have it locally, Docker will
+  # automatically download it.
+  airflow-postgres:
+    image: postgres:9.6  # specify the version of the image
+    # The following lines indicate what env variables we want launched.
+    # According to the documentation for PostgreSQL on hub.docker.com we learn
+    # this is an optional way to create the name of the user, password and DB
+    # we want to be included in our container running the database.
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    # When we point only one port, it means the container will only be reachable
+    # from within the docker environment. In this case, we only want webserver
+    # to talk with it.
+    ports:
+      - 5432
+    # Below we define that the container will be in the same network as
+    # webserver. This way they can communicate by name. We also say it can be
+    # found using "postgres" hostname. Docker doing its magic.
+    networks:
+      airflow-net:
+        aliases:
+          - postgres
+
+  # Now comes the airflow server itself
+  airflow-webserver:
+    # Name of the image we are launching. Since we already build it in the
+    # previous step, Docker will find it in our cache and won't try to download
+    # it from hub.docker.com. In case you didn't follow the tutorial, this will
+    # fail, since this image is not online.
+    image: airflow_tutorial:latest
+    depends_on:
+      - airflow-postgres # it will wait until postgres is up and running
+    # Some more environmental variables. Check the EXECUTOR will override the
+    # default setting of what is in the config.cfg. and the LOAD_EX will prevent
+    # Airflow from loading a lot of example DAGs which would create noise in the
+    # tutorial.
+    environment:
+      - LOAD_EX=n
+      - EXECUTOR=Local
+    # Becase we want to access this container from our machine, or from any
+    # other machine in case we want to deploy it in AWS or another cloud
+    # provider, we need to provide 2 ports. The first is the port of for the
+    # host of the container and the second is the port from where the container
+    # is reachable from withing docker.
+    ports:
+      - 8080:8080
+    networks:
+      - airflow-net
+    command: webserver
+    # this mounts the
+    volumes:
+      - ../../src/dags/:/usr/local/airflow/dags
+
+networks:
+  airflow-net:
