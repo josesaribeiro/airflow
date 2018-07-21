@@ -220,3 +220,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+
+src/dags/aws_secrets.py

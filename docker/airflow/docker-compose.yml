@@ -32,7 +32,9 @@ services:
     # previous step, Docker will find it in our cache and won't try to download
     # it from hub.docker.com. In case you didn't follow the tutorial, this will
     # fail, since this image is not online.
-    image: airflow_tutorial:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
       - airflow-postgres # it will wait until postgres is up and running
     # Some more environmental variables. Check the EXECUTOR will override the
